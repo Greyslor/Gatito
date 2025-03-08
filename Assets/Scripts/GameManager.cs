@@ -15,7 +15,7 @@ public class GameManager : MonoBehaviour
         UnityWebRequest www = UnityWebRequest.Get("http://www.my-server.com");
         yield return www.Send();
 
-        if (www.isError)
+        if (www.isNetworkError)
         {
             Debug.Log(www.error);
         }
