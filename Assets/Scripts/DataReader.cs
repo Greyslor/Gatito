@@ -8,7 +8,7 @@ public class DataReader : MonoBehaviour
     public GameManager manager;
     public TextMeshProUGUI[] boardBoxes;
     public TextMeshProUGUI yourScore;
-    public TextMeshProUGUI otherdScore;
+    public TextMeshProUGUI otherScore;
     public TextMeshProUGUI round;
 
     private void OnEnable()
@@ -27,32 +27,33 @@ public class DataReader : MonoBehaviour
         {
             if (manager.data.board[i] == 1)
             {
-                //cambiar texto en el boton a X
+                boardBoxes[i].text = "X";
             }
-            else if (manager.data.board[i] == 1)
+            else if (manager.data.board[i] == 2)
             {
-                //cambiar texto en el boton a O
+                boardBoxes[i].text = "O";
             }
             else
             {
-                //Dejar el texto en el boton vacio
+                boardBoxes[i].text = "";
             }
+            Debug.Log(string.Join(",", manager.data.board));
         }
         UpdateScore();
     }
 
     public void UpdateScore()
     {
-        if(manager.id == "&id=id1")
+        if (manager.id == "&id=id1")
         {
-            //cambiar texto yourScore con manager.data.score1
-            //cambiar texto otherScore con manager.data.score2
+            yourScore.text = manager.data.score1.ToString();
+            otherScore.text = manager.data.score2.ToString();
         }
-        else if(manager.id == "&id=id2")
+        else if (manager.id == "&id=id2")
         {
-            //cambiar texto yourScore con manager.data.score2
-            //cambiar texto otherScore con manager.data.score1
+            yourScore.text = manager.data.score2.ToString();
+            otherScore.text = manager.data.score1.ToString();
         }
-        //cambiar texto round con manager.data.round
+        round.text = manager.data.round.ToString();
     }
 }
