@@ -77,17 +77,6 @@
             
         }
 
-        public function setPlayerId ($player, $id)
-        {
-            if ($player == 1)
-                $this->p1 = $id;
-            elseif ($player == 2)
-                $this->p2 = $id;
-            else
-                return false;
-            return true;
-        }
-
         public function getPlayer($id)
         {
             if ($id == $this->p1)
@@ -98,32 +87,13 @@
                 return 0;
         }
 
-        public function getScore ($player)
+        public function getStatus ()
         {
-            switch($player)
-            {
-                case 1:
-                    return $this->score1;
-                break;
-
-                case 2:
-                    return $this->score2;
-                break;
-
-                default:
-                    return "-1";
-                break;
-            }
-        }
-
-        public function getStatus ($id)
-        {
-            $player = $this->getPlayer($id);
-
             $data = array(
                 "actual"=>$this->actual,
                 "round"=>$this->round,
-                "score".$player=>$this->getScore($player),
+                "score1"=>$this->score1,
+                "score2"=>$this->score2,
                 "board"=>$this->board,
             );
 
@@ -132,22 +102,71 @@
 
         public function turn($id, $pos) // pos en formato de array unidimensional
         {
-            // validar que sea su turno con el ID
-            // pos válida
-
-            if ( $this->board[$pos] == 0 ) // pos vacía
-            {
-                //guardar pos
-                $this->board[$pos] = ($this->getPlayer($id) % 2) +1 ;
-                return "OK";
-            }else{ // error
-                return "error";
+            if(($this->actual % 2 ) == ($this->getPlayer($id) -1)){
+                if($pos <= 8 & $pos >= 0){
+                    if ( $this->board[$pos] == 0 ) // pos vacía
+                    {
+                        //guardar pos
+                    $this->board[$pos] = $this->getPlayer($id);
+                        $this->actual++;
+                        return $this->isWin();
+                    }else{ // error
+                        return "error";
+                    }
+                }else{
+                    return "box not found";
+                }
+            }else{
+                return "not your turn";
             }
+
         }
 
         public function isWin ()
         {
-            // validaciones
+            if($this->board[0] == $this->board[1] & $this->board[1] == $this->board[2] & $this->board[0] != 0|| 
+            $this->board[3] == $this->board[4] & $this->board[4] == $this->board[5] & $this->board[3] != 0|| 
+            $this->board[6] == $this->board[7] & $this->board[7] == $this->board[8] & $this->board[6] != 0|| 
+
+            $this->board[0] == $this->board[3] & $this->board[3] == $this->board[6] & $this->board[0] != 0|| 
+            $this->board[1] == $this->board[4] & $this->board[4] == $this->board[7] & $this->board[1] != 0|| 
+            $this->board[2] == $this->board[5] & $this->board[5] == $this->board[8] & $this->board[2] != 0||
+            
+            $this->board[0] == $this->board[4] & $this->board[4] == $this->board[8] & $this->board[0] != 0|| 
+            $this->board[2] == $this->board[4] & $this->board[4] == $this->board[6] & $this->board[2] != 0){
+                if(($this->actual % 2 ) == 0){
+                    $this->score2 ++;
+                    $this->round ++;
+                    return "player2 wins";
+                }else{
+                    $this->score1 ++;
+                    $this->round ++;
+                    return "player1 wins";
+                }
+            }else if($this->actual == 9){
+                $this->round ++;
+                return "tie";
+            }else{
+                return"OK";
+            }
+        }
+
+        public function newGame ()
+        {
+            $file = fopen($this->db, "r") or die ("error");
+            $strData = fread($file,filesize($this->db));
+            $data = json_decode($strData);
+
+            $this->board = array(0,0,0,0,0,0,0,0,0);
+            
+            $this->p1="id1";
+            $this->p2="id2";
+            $this->actual=0;
+            $this->round = $data->round;
+            $this->score1 = $data->score1;
+            $this->score2 = $data->score2;
+
+            $this->saveDb();
         }
     }
 
@@ -175,17 +194,8 @@
         break;
 
         case 2:
-            if( !empty($_GET["id"]) )
-            {
-                $id = $_GET["id"];
-            }
-            else
-            {
-                $id = 0;
-            }
-            
             $gato->loadDb();
-            echo $gato->getStatus($id);
+            echo $gato->getStatus();
         break;
 
         case 3: // turn
@@ -210,6 +220,9 @@
             $gato->loadDb();
             echo $gato->turn($id, $pos);
             $gato->saveDb();
+        break;
+        case 4: // newgame
+            $gato->newGame();
         break;
 
         default:

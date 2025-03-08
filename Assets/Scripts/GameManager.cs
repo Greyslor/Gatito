@@ -1,23 +1,66 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Networking;
 
 public class GameManager : MonoBehaviour
 {
-    public string id;
-    public int box;
-    public string json;
-    public GatoData data;
-
+    [Header("Object references")]
     public GameObject playerSelection;
     public GameObject game;
+
+    [Header ("Data Base")]
+    public GatoData data;
+    public string id;
+    private int box;
+
+    public delegate void GotData();
+    public GotData onGotData;
+
+    private bool canUpdate = true;
     void Start()
     {
+        StopAllCoroutines();
         playerSelection.SetActive(true);
         game.SetActive(false);
     }
 
+    public void SelectId(string idInput)
+    {
+        id = idInput;
+        playerSelection.SetActive(false);
+        game.SetActive(true);
+
+    }
+
+    private void Update()
+    {
+        if (canUpdate && id != string.Empty)
+        {
+            StartCoroutine(GetInfo());
+        }
+    }
+
+    public void PlayerMove(int boxInput)
+    {
+        box = boxInput;
+        StartCoroutine(SendMove());
+    }
+
+    [ContextMenu("newGame")]
+    public void NewGameBtn()
+    {
+        StartCoroutine(NewGame());
+    }
+
+    [ContextMenu("resetgame")]
+    public void ResetGame()
+    {
+        StartCoroutine(ResetInfo());
+    }
+
+    //Acciones en el php
     IEnumerator ResetInfo()
     {
         UnityWebRequest www = UnityWebRequest.Get("http://localhost/gato/gato.php?action=1");
@@ -35,11 +78,13 @@ public class GameManager : MonoBehaviour
             // Or retrieve results as binary data
             byte[] results = www.downloadHandler.data;
         }
+        yield return null;
     }
 
     IEnumerator GetInfo()
     {
-        UnityWebRequest www = UnityWebRequest.Get("http://localhost/gato/gato.php?action=2&id="+id);
+        canUpdate = false;
+        UnityWebRequest www = UnityWebRequest.Get("http://localhost/gato/gato.php?action=2");
         yield return www.Send();
 
         if (www.isNetworkError)
@@ -48,7 +93,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            json = www.downloadHandler.text;
+            string json = www.downloadHandler.text;
             data = JsonUtility.FromJson<GatoData>(json);
             print(data);
 
@@ -56,11 +101,14 @@ public class GameManager : MonoBehaviour
             // Or retrieve results as binary data
             byte[] results = www.downloadHandler.data;
         }
+        yield return new WaitForSeconds(.3f);
+        canUpdate = true;
+        onGotData?.Invoke();
     }
 
-    IEnumerator PlayerMove()
+    IEnumerator SendMove()
     {
-        UnityWebRequest www = UnityWebRequest.Get("http://localhost/gato/gato.php?action=3&id=" + id + "&pos=" + box);
+        UnityWebRequest www = UnityWebRequest.Get("http://localhost/gato/gato.php?action=3" + id + "&pos=" + box);
         yield return www.Send();
 
         if (www.isNetworkError)
@@ -77,29 +125,24 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void SelectId(string idInput)
+    IEnumerator NewGame()
     {
-        id = idInput;
-        playerSelection.SetActive(false);
-        game.SetActive(true);
+        canUpdate = false;
+        UnityWebRequest www = UnityWebRequest.Get("http://localhost/gato/gato.php?action=4");
+        yield return www.Send();
 
-    }
+        if (www.isNetworkError)
+        {
+            Debug.Log(www.error);
+        }
+        else
+        {
+            print("New Game");
 
-    public void PlayerMove(int boxInput)
-    {
-        box = boxInput;
-        StartCoroutine(PlayerMove());
-    }
-    [ContextMenu("reset")]
-    public void ResetGame()
-    {
-        StopAllCoroutines();
-        StartCoroutine(ResetInfo());
-    }
 
-    [ContextMenu("getinfo")]
-    public void GetInfoFunc()
-    {
-        StartCoroutine(GetInfo());
+            // Or retrieve results as binary data
+            byte[] results = www.downloadHandler.data;
+        }
+        yield return null;
     }
 }
