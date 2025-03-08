@@ -3639,8 +3639,9 @@ MonoBehaviour:
   - {fileID: 1469210754}
   - {fileID: 354634360}
   - {fileID: 1537939504}
-  yourScore: {fileID: 0}
-  otherdScore: {fileID: 0}
+  yourScore: {fileID: 509450405}
+  otherdScore: {fileID: 334785988}
+  round: {fileID: 42505327}
 --- !u!1 &1924974065
 GameObject:
   m_ObjectHideFlags: 0
