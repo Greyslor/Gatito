@@ -46,14 +46,14 @@ public class DataReader : MonoBehaviour
     {
         if (manager.id == "&id=id1")
         {
-            yourScore.text = manager.data.score1.ToString();
-            otherScore.text = manager.data.score2.ToString();
+            yourScore.text = "Your Score: " + manager.data.score1.ToString();
+            otherScore.text = "Other Score: " + manager.data.score2.ToString();
         }
         else if (manager.id == "&id=id2")
         {
-            yourScore.text = manager.data.score2.ToString();
-            otherScore.text = manager.data.score1.ToString();
+            yourScore.text = "Your Score: " + manager.data.score2.ToString();
+            otherScore.text = "Other Score: " + manager.data.score1.ToString();
         }
-        round.text = manager.data.round.ToString();
+        round.text = "Round: " + manager.data.round.ToString();
     }
 }
